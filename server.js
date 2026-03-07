@@ -1,17 +1,21 @@
+// server.js
 const express = require("express");
-
+const fetch = require("node-fetch"); // ensure node-fetch is installed
 const app = express();
 app.use(express.json());
 
-// API key from Render environment variable
-const API_KEY = process.env.GEMINI_API_KEY;
+// =============================================
+// 1️⃣ Put your OpenRouter API key in Render
+//    (Environment variable: OPENROUTER_API_KEY)
+// =============================================
+const API_KEY = process.env.OPENROUTER_API_KEY;
 
 if (!API_KEY) {
-  console.error("❌ Gemini API key NOT set!");
-} else {
-  console.log("✅ Gemini API key loaded");
+  console.error("❌ OPENROUTER_API_KEY is not set! Add it in Render environment variables.");
+  process.exit(1);
 }
 
+// POST /suggest
 app.post("/suggest", async (req, res) => {
   try {
     const { text } = req.body;
@@ -20,63 +24,46 @@ app.post("/suggest", async (req, res) => {
       return res.json({ suggestions: false });
     }
 
-    console.log("Input text:", text);
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `You are an autocomplete assistant.
-Suggest EXACTLY 3 short continuations (2-4 words each).
-Return ONLY comma separated suggestions.
-
-Partial text: "${text}"`
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 50
-          }
-        })
-      }
-    );
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "mistralai/mistral-7b-instruct",
+        messages: [
+          {
+            role: "user",
+            content: `You are an autocomplete assistant. Suggest exactly 3 short continuations (2-4 words each) for this text. Return ONLY the suggestions, separated by commas. Partial text: "${text}"`,
+          },
+        ],
+        max_tokens: 30,
+      }),
+    });
 
     const data = await response.json();
 
-    if (data.error) {
-      console.error("Gemini API error:", data.error);
+    // Extract the suggestions text
+    const result = data?.choices?.[0]?.message?.content;
+    if (!result) {
       return res.json({ suggestions: false });
     }
 
-    const result =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text || false;
-
-    console.log("Suggestions:", result);
-
+    // Return the suggestions
     res.json({ suggestions: result });
-
   } catch (error) {
-    console.error("Server error:", error);
+    console.error("Server error:", error.message);
     res.json({ suggestions: false });
   }
 });
 
+// Simple GET to test server
 app.get("/", (req, res) => {
-  res.send("AI Suggestion Proxy is running!");
+  res.send("AI Suggestion Proxy is running ✅");
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("🚀 Server running on port", PORT);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
 });
