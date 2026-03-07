@@ -1,12 +1,15 @@
 {
   "name": "ai-suggestion-proxy",
   "version": "1.0.0",
+  "description": "Simple AI autocomplete proxy using OpenRouter",
   "main": "server.cjs",
-  "type": "commonjs",
   "scripts": {
     "start": "node server.cjs"
   },
+  "author": "River Kruijsen",
+  "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
   }
 }
