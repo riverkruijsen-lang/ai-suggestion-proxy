@@ -79,12 +79,12 @@ app.post("/suggest", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("AI Suggestion Proxy is running! API Key set: " + (API_KEY !== "PUT_YOUR_REAL_API_KEY_HERE"));
+  res.send("AI Suggestion Proxy is running! API Key set: " + (API_KEY !== "AIzaSyDYghgyYOCv4zzB3IlYqjz97yPgJ4Crk9c"));
 });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log("Server running on port " + port);
-  console.log("API Key set:", API_KEY !== "PUT_YOUR_REAL_API_KEY_HERE");
+  console.log("API Key set:", API_KEY !== "AIzaSyDYghgyYOCv4zzB3IlYqjz97yPgJ4Crk9c");
   console.log("API Key length:", API_KEY.length);
 });
