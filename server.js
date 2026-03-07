@@ -1,5 +1,4 @@
 const express = require("express");
-const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
 
 const app = express();
 app.use(express.json());
@@ -7,14 +6,12 @@ app.use(express.json());
 // API key from Render environment variable
 const API_KEY = process.env.GEMINI_API_KEY;
 
-// Safety check
 if (!API_KEY) {
   console.error("❌ Gemini API key NOT set!");
 } else {
   console.log("✅ Gemini API key loaded");
 }
 
-// Suggestion endpoint
 app.post("/suggest", async (req, res) => {
   try {
     const { text } = req.body;
@@ -37,8 +34,8 @@ app.post("/suggest", async (req, res) => {
             {
               parts: [
                 {
-                  text: `You are an autocomplete assistant. 
-Suggest EXACTLY 3 short continuations (2-4 words each). 
+                  text: `You are an autocomplete assistant.
+Suggest EXACTLY 3 short continuations (2-4 words each).
 Return ONLY comma separated suggestions.
 
 Partial text: "${text}"`
@@ -74,12 +71,10 @@ Partial text: "${text}"`
   }
 });
 
-// Health check
 app.get("/", (req, res) => {
   res.send("AI Suggestion Proxy is running!");
 });
 
-// Render requires PORT env variable
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
