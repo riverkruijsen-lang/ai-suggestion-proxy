@@ -2,6 +2,7 @@
   "name": "ai-suggestion-proxy",
   "version": "1.0.0",
   "main": "server.cjs",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.cjs"
   },
