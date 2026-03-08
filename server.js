@@ -18,11 +18,11 @@ app.post("/suggest", async (req, res) => {
         "Authorization": "Bearer " + API_KEY
       },
       body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct:free",
+        model: "meta-llama/llama-3.1-8b-instruct:free",
         messages: [
           {
             role: "user",
-            content: "You are an autocomplete assistant. Given the following partial text, suggest exactly 3 short continuations (2-4 words each). Return ONLY the suggestions separated by commas, nothing else. No numbering, no quotes, no explanation.\n\nPartial text: \"" + text + "\""
+            content: "Suggest 3 short autocomplete continuations (2-4 words each) for this text. Return ONLY the 3 suggestions separated by commas. Nothing else.\n\nText: \"" + text + "\""
           }
         ],
         max_tokens: 50
@@ -30,7 +30,12 @@ app.post("/suggest", async (req, res) => {
     });
 
     const data = await response.json();
-    console.log("Response:", JSON.stringify(data));
+    console.log("Full response:", JSON.stringify(data));
+
+    if (data.error) {
+      console.log("API error:", data.error);
+      return res.json({ suggestions: false });
+    }
 
     const result = data?.choices?.[0]?.message?.content || false;
     console.log("Input:", text, "Output:", result);
