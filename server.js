@@ -2,11 +2,14 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-const API_KEY = "sk-or-v1-9a6...09e";
+const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args));
+
+const API_KEY = process.env.OPENROUTER_KEY;
 
 app.post("/suggest", async (req, res) => {
   try {
     const { text } = req.body;
+
     if (!text || typeof text !== "string") {
       return res.json({ suggestions: false });
     }
@@ -22,7 +25,11 @@ app.post("/suggest", async (req, res) => {
         messages: [
           {
             role: "user",
-            content: "Suggest 3 short autocomplete continuations (2-4 words each) for this text. Return ONLY the 3 suggestions separated by commas. Nothing else.\n\nText: \"" + text + "\""
+            content:
+              `Suggest 3 short autocomplete continuations (2-4 words each).
+Return ONLY the suggestions separated by commas.
+
+Text: "${text}"`
           }
         ],
         max_tokens: 50
@@ -30,17 +37,23 @@ app.post("/suggest", async (req, res) => {
     });
 
     const data = await response.json();
-    console.log("Full response:", JSON.stringify(data));
 
-    if (data.error) {
-      console.log("API error:", data.error);
+    const result = data?.choices?.[0]?.message?.content;
+
+    if (!result) {
       return res.json({ suggestions: false });
     }
 
-    const result = data?.choices?.[0]?.message?.content || false;
-    console.log("Input:", text, "Output:", result);
+    const suggestions = result
+      .split(",")
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
 
-    res.json({ suggestions: result });
+    console.log("Input:", text);
+    console.log("Suggestions:", suggestions);
+
+    res.json({ suggestions });
+
   } catch (error) {
     console.error("Error:", error.message);
     res.json({ suggestions: false });
@@ -48,10 +61,11 @@ app.post("/suggest", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Proxy is running");
+  res.send("AI suggestion proxy running");
 });
 
 const port = process.env.PORT || 3000;
+
 app.listen(port, () => {
   console.log("Running on port " + port);
 });
